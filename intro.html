@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>동경중앙교회 — Intro</title>
+<link rel="preload" as="image" href="1.png">
+<link rel="preload" as="image" href="2.png">
+<link rel="preload" as="image" href="3.png">
+<link rel="preload" as="image" href="4.png">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; background: #0a0f1e; overflow: hidden; font-family: 'Noto Serif KR', serif; }
+
+/* ===== LOADING SCREEN ===== */
+#loading-screen {
+  position: fixed; inset: 0; z-index: 99999;
+  background: #0a0f1e;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 24px;
+  transition: opacity 0.5s ease;
+}
+#loading-screen.hide { opacity: 0; pointer-events: none; }
+
+.loading-cross {
+  font-size: 36px;
+  color: #C4962A;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity:0.4; transform:scale(0.95); } 50% { opacity:1; transform:scale(1.05); } }
+
+.loading-title {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.05em;
+  text-align: center;
+  line-height: 1.5;
+}
+.loading-title span { display: block; font-size: 12px; font-weight: 300; color: rgba(255,255,255,0.4); letter-spacing: 0.2em; margin-top: 4px; }
+
+.loading-text {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* 에너지 바 */
+.loading-bar-wrap {
+  width: 240px;
+  height: 3px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+.loading-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #C4962A, #E8BE5A);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+.loading-bar::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 20px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6));
+  animation: shimmer 0.8s ease infinite;
+}
+@keyframes shimmer { 0%,100% { opacity:0; } 50% { opacity:1; } }
+
+.loading-percent {
+  font-size: 11px;
+  color: #C4962A;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+
+/* ===== INTRO ===== */
+#intro {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #87CEEB;
+  display: flex; align-items: flex-end; justify-content: center;
+  overflow: hidden;
+  opacity: 0;
+}
+#intro.show { opacity: 1; }
+
+#building-wrap {
+  position: absolute; inset: 0;
+  display: flex; align-items: flex-end; justify-content: center;
+  transform-origin: 38% 85%;
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#building-wrap.zoom-in { transform: scale(2.8) translateY(8%); }
+
+.bld-layer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.bld-layer img { height: 100%; width: 100%; object-fit: contain; object-position: bottom center; display: block; }
+#layer2, #layer3, #layer4 { opacity: 0; }
+
+@keyframes impact {
+  0%   { transform: translate(0,0) scale(1); }
+  15%  { transform: translate(-4px,-6px) scale(1.008); }
+  30%  { transform: translate(5px,4px) scale(0.995); }
+  45%  { transform: translate(-3px,3px) scale(1.004); }
+  60%  { transform: translate(2px,-2px) scale(0.998); }
+  75%  { transform: translate(-1px,1px) scale(1.001); }
+  100% { transform: translate(0,0) scale(1); }
+}
+.shake { animation: impact 0.18s ease-out; }
+
+#intro.fadeout { animation: introOut 0.5s ease-in forwards; }
+@keyframes introOut { from { opacity:1; } to { opacity:0; pointer-events:none; } }
+
+#progress-dots {
+  position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 8px; z-index: 10; transition: opacity 0.3s;
+}
+.dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.3); transition: background 0.2s, transform 0.2s; }
+.dot.active { background: #fff; transform: scale(1.3); }
+
+#skip-btn {
+  position: absolute; top: 16px; right: 20px;
+  background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.7); font-size: 11px; letter-spacing: 0.1em;
+  padding: 5px 14px; border-radius: 20px; cursor: pointer; z-index: 20;
+  transition: all 0.2s; backdrop-filter: blur(4px);
+}
+#skip-btn:hover { background: rgba(0,0,0,0.5); color: #fff; }
+
+.impact-ring { position: absolute; inset: 0; pointer-events: none; z-index: 5; display: flex; align-items: center; justify-content: center; }
+@keyframes ringExpand { 0% { opacity:0.6; transform:scale(0.3); } 100% { opacity:0; transform:scale(1.5); } }
+.ring { position: absolute; border: 2px solid rgba(255,255,255,0.4); border-radius: 50%; width: 160px; height: 160px; animation: ringExpand 0.4s ease-out forwards; }
+
+#flash { position: absolute; inset: 0; background: rgba(255,255,255,0); pointer-events: none; z-index: 8; }
+@keyframes flashEffect { 0% { background: rgba(255,255,255,0.3); } 100% { background: rgba(255,255,255,0); } }
+#flash.flash-on { animation: flashEffect 0.2s ease-out forwards; }
+
+#stage-label {
+  position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+  color: rgba(255,255,255,0); font-size: 12px; letter-spacing: 0.15em;
+  z-index: 10; white-space: nowrap;
+}
+#stage-label.show { animation: labelPop 0.8s ease forwards; }
+@keyframes labelPop {
+  0%   { color: rgba(255,255,255,0); transform: translateX(-50%) translateY(4px); }
+  20%  { color: rgba(255,255,255,0.9); transform: translateX(-50%) translateY(0); }
+  70%  { color: rgba(255,255,255,0.9); }
+  100% { color: rgba(255,255,255,0); }
+}
+
+/* ===== LANDING ===== */
+#landing {
+  position: fixed; inset: 0; opacity: 0; pointer-events: none;
+  transition: opacity 0.6s ease;
+  background: #1A2744;
+  display: flex; align-items: center; justify-content: center; flex-direction: column; color: #fff;
+}
+#landing.visible { opacity: 1; pointer-events: auto; }
+#landing h1 { font-family: 'Noto Serif KR', serif; font-size: clamp(32px,5vw,64px); font-weight: 700; color: #fff; text-align: center; line-height: 1.3; margin-bottom: 12px; }
+#landing p { font-size: 16px; color: rgba(255,255,255,0.6); letter-spacing: 0.1em; margin-bottom: 40px; }
+#landing a { display: inline-flex; align-items: center; gap: 8px; background: #C4962A; color: #111; font-weight: 700; font-size: 15px; padding: 14px 32px; border-radius: 30px; text-decoration: none; letter-spacing: 0.03em; transition: all 0.2s; }
+#landing a:hover { background: #E8BE5A; transform: translateY(-2px); }
+</style>
+</head>
+<body>
+
+<!-- ===== LOADING ===== -->
+<div id="loading-screen">
+  <div class="loading-cross">✝</div>
+  <div class="loading-title">
+    동경중앙교회
+    <span>東京中央教会</span>
+  </div>
+  <div class="loading-bar-wrap">
+    <div class="loading-bar" id="loading-bar"></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div class="loading-text">Now Loading</div>
+    <div class="loading-percent" id="loading-percent">0%</div>
+  </div>
+</div>
+
+<!-- ===== INTRO ===== -->
+<div id="intro">
+  <div id="flash"></div>
+  <div id="stage-label"></div>
+  <div id="building-wrap">
+    <div class="bld-layer" id="layer1"><img src="1.png" alt="건물" id="img1"></div>
+    <div class="bld-layer" id="layer2"><img src="2.png" alt="계단탑" id="img2"></div>
+    <div class="bld-layer" id="layer3"><img src="3.png" alt="창문+문" id="img3"></div>
+    <div class="bld-layer" id="layer4"><img src="4.png" alt="완성" id="img4"></div>
+  </div>
+  <div class="impact-ring" id="impact-ring"></div>
+  <div id="progress-dots">
+    <div class="dot active" id="dot1"></div>
+    <div class="dot" id="dot2"></div>
+    <div class="dot" id="dot3"></div>
+    <div class="dot" id="dot4"></div>
+  </div>
+  <button id="skip-btn" onclick="skipIntro()">SKIP ›</button>
+</div>
+
+<!-- ===== LANDING ===== -->
+<div id="landing">
+  <h1>동경중앙교회<br><span style="font-weight:300;font-size:0.6em;color:rgba(255,255,255,0.5);">東京中央教会</span></h1>
+  <p>재일대한기독교회 · TCK 1972</p>
+  <a href="tck_church.html">홈페이지 들어가기 →</a>
+</div>
+
+<script>
+const wrap = document.getElementById('building-wrap');
+const flash = document.getElementById('flash');
+const stageLabel = document.getElementById('stage-label');
+const dots = [1,2,3,4].map(i => document.getElementById('dot'+i));
+const impactRing = document.getElementById('impact-ring');
+const labels = ['', '계단탑', '스테인드글라스 · 정문', '십자가 · 완공'];
+
+// ===== 이미지 로딩 =====
+const imgSrcs = ['1.png','2.png','3.png','4.png'];
+let loadedCount = 0;
+
+function updateLoadingBar(pct) {
+  document.getElementById('loading-bar').style.width = pct + '%';
+  document.getElementById('loading-percent').textContent = Math.round(pct) + '%';
+}
+
+function onImageLoad() {
+  loadedCount++;
+  const pct = (loadedCount / imgSrcs.length) * 100;
+  updateLoadingBar(pct);
+  if (loadedCount === imgSrcs.length) {
+    // 살짝 딜레이 후 인트로 시작
+    setTimeout(startIntro, 400);
+  }
+}
+
+// 로딩 시뮬레이션 (이미 캐시된 경우 너무 빠름 방지)
+let fakePct = 0;
+const fakeTimer = setInterval(() => {
+  fakePct += 3;
+  if (fakePct >= 90) clearInterval(fakeTimer);
+  if (fakePct < (loadedCount / imgSrcs.length * 100)) return;
+  updateLoadingBar(Math.min(fakePct, 90));
+}, 80);
+
+imgSrcs.forEach(src => {
+  const img = new Image();
+  img.onload = img.onerror = onImageLoad;
+  img.src = src;
+});
+
+function startIntro() {
+  clearInterval(fakeTimer);
+  updateLoadingBar(100);
+  setTimeout(() => {
+    const ls = document.getElementById('loading-screen');
+    ls.classList.add('hide');
+    const intro = document.getElementById('intro');
+    intro.classList.add('show');
+    setTimeout(() => { ls.style.display = 'none'; runIntro(); }, 500);
+  }, 300);
+}
+
+// ===== 인트로 =====
+function doFlash() {
+  flash.classList.remove('flash-on');
+  void flash.offsetWidth;
+  flash.classList.add('flash-on');
+}
+function doRing() {
+  const r = document.createElement('div');
+  r.className = 'ring';
+  impactRing.appendChild(r);
+  setTimeout(() => r.remove(), 500);
+}
+function doShake() {
+  wrap.classList.remove('shake');
+  void wrap.offsetWidth;
+  wrap.classList.add('shake');
+  wrap.addEventListener('animationend', () => wrap.classList.remove('shake'), {once:true});
+}
+function showLabel(text) {
+  stageLabel.textContent = text;
+  stageLabel.classList.remove('show');
+  void stageLabel.offsetWidth;
+  stageLabel.classList.add('show');
+}
+function updateDots(n) {
+  dots.forEach((d,i) => d.classList.toggle('active', i < n));
+}
+function revealLayer(id, label) {
+  doFlash(); doRing();
+  const layer = document.getElementById(id);
+  layer.style.transition = 'opacity 0.1s ease-out';
+  layer.style.opacity = '1';
+  setTimeout(() => { doShake(); showLabel(label); }, 60);
+}
+function goToLanding() {
+  document.getElementById('intro').classList.add('fadeout');
+  setTimeout(() => {
+    document.getElementById('intro').style.display = 'none';
+    document.getElementById('landing').classList.add('visible');
+  }, 500);
+}
+function skipIntro() { goToLanding(); }
+
+function runIntro() {
+  updateDots(1);
+  setTimeout(() => { updateDots(2); revealLayer('layer2', labels[1]); }, 700);
+  setTimeout(() => { updateDots(3); revealLayer('layer3', labels[2]); }, 1400);
+  setTimeout(() => {
+    updateDots(4); revealLayer('layer4', labels[3]);
+    setTimeout(() => {
+      document.getElementById('progress-dots').style.opacity = '0';
+      document.getElementById('skip-btn').style.opacity = '0';
+      wrap.classList.add('zoom-in');
+      setTimeout(goToLanding, 800);
+    }, 400);
+  }, 2100);
+}
+</script>
+</body>
+</html>
